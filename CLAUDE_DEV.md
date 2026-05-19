@@ -15,15 +15,15 @@ There is no build step, no test suite, no runtime. The "product" is the markdown
 
 ## The product / repo-layout split
 
-Every `.md` file at the repo root is **content that gets shipped to consumers**:
+Source overlay files live under `.claude/` mirroring their destination layout. The source tree **is** the install tree — `install.sh` copies file-for-file:
 
-| File at repo root          | Installed at target as                          | Layer        |
-|----------------------------|-------------------------------------------------|--------------|
-| `CLAUDE.md`                | `<target>/CLAUDE.md`                            | 1 (base)     |
-| `FORGE.md` / `QUILL.md` / `SCOUT.md` | `<target>/.claude/agents/<NAME>.md`   | 2 (role)     |
-| `PROJECT_TEMPLATE.md` / `PROJECT_WEBAPP.md` / `PROJECT_API.md` / `PROJECT_CLI.md` | `<target>/.claude/projects/<NAME>.md` | 3 (project)  |
-| `ARGENT.md`                | `<target>/.claude/orchestrator/ARGENT.md`       | orchestrator |
-| `LAYERING_MODEL.md` / `ROUTING_PATTERNS.md` / `CREATING_OVERLAYS.md` | `<target>/.claude/docs/<NAME>.md` | docs |
+| Source path                                     | Installed at target as                          | Layer        |
+|-------------------------------------------------|-------------------------------------------------|--------------|
+| `CLAUDE.md`                                     | `<target>/CLAUDE.md`                            | 1 (base)     |
+| `.claude/agents/FORGE.md` / `QUILL.md` / `SCOUT.md` | `<target>/.claude/agents/<NAME>.md`         | 2 (role)     |
+| `.claude/projects/PROJECT_TEMPLATE.md` / `PROJECT_WEBAPP.md` / `PROJECT_API.md` / `PROJECT_CLI.md` | `<target>/.claude/projects/<NAME>.md` | 3 (project)  |
+| `.claude/orchestrator/ARGENT.md`                | `<target>/.claude/orchestrator/ARGENT.md`       | orchestrator |
+| `.claude/docs/LAYERING_MODEL.md` / `ROUTING_PATTERNS.md` / `CREATING_OVERLAYS.md` | `<target>/.claude/docs/<NAME>.md` | docs |
 
 Editing any of these is a product change. Treat them like releasable artifacts:
 
@@ -31,15 +31,11 @@ Editing any of these is a product change. Treat them like releasable artifacts:
 - Voice: direct, declarative, no hedging. No em-dashes (use colons, periods, semicolons). Examples before abstractions. Match the surrounding overlay structure exactly. (See `CONTRIBUTING.md`.)
 - Editing `CLAUDE.md` (the Layer 1 base) propagates to every downstream consumer. Be especially careful with it.
 
-Repo-development files that do **not** ship to consumers: this file, `install.sh`, `README.md`, `CONTRIBUTING.md`, `AI_INSTALL.md`, `CHANGELOG.md`, `LICENSE`, `validate.yml`, the `claude-layers-*.tar.gz` release bundle.
+Repo-development files that do **not** ship to consumers (stay at repo root, untouched by `install.sh`): this file, `install.sh`, `.gitignore`, `README.md`, `CONTRIBUTING.md`, `AI_INSTALL.md`, `CHANGELOG.md`, `LICENSE`, `validate.yml`.
 
-## Known structural inconsistencies (verify before "fixing")
+## Known structural issue (verify before "fixing")
 
-There are two things in the current layout a reader will notice. Surface them; do not silently change them without confirming with the maintainer.
-
-1. **Installer source paths vs. flat repo layout.** `install.sh` reads sources from `$SCRIPT_DIR/.claude/agents/FORGE.md`, `$SCRIPT_DIR/.claude/projects/...`, etc. But the actual source files live flat at the repo root (`./FORGE.md`, `./PROJECT_WEBAPP.md`, ...). With the current layout, `copy_with_check` will print `Warning: source file missing:` for every overlay and copy nothing. Either the installer expects a future restructure (sources moved into `.claude/` mirroring the destination tree) or the source paths should be flattened. The `claude-layers-v1.0.0.tar.gz` bundle may already contain the mirrored layout.
-
-2. **`validate.yml` location.** The file is a GitHub Actions workflow but sits at the repo root rather than `.github/workflows/validate.yml`. Actions will not pick it up where it currently is.
+**`validate.yml` location.** The file is a GitHub Actions workflow but sits at the repo root rather than `.github/workflows/validate.yml`. Actions will not pick it up where it currently is. Surface this; do not silently move it without confirming with the maintainer.
 
 ## Commands
 
